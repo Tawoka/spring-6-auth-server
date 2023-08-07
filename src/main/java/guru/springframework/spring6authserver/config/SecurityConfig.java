@@ -10,6 +10,7 @@ import org.springframework.core.annotation.*;
 import org.springframework.http.*;
 import org.springframework.security.config.*;
 import org.springframework.security.config.annotation.web.builders.*;
+import org.springframework.security.config.annotation.web.configuration.*;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.core.oidc.*;
@@ -30,6 +31,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.UUID;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
   @Bean
@@ -83,20 +85,23 @@ public class SecurityConfig {
 
   @Bean
   public RegisteredClientRepository registeredClientRepository() {
-    RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+    RegisteredClient registeredClient = RegisteredClient.withId(UUID.randomUUID().toString())
         .clientId("oidc-client")
         .clientSecret("{noop}secret")
         .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
         .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
         .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-        .redirectUri("http://127.0.0.1:8080/login/oauth2/code/oidc-client")
-        .postLogoutRedirectUri("http://127.0.0.1:8080/")
+        .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+        .redirectUri("http://127.0.0.1:8080/login/oauth2/code/messaging-client-oidc")
+        .redirectUri("http://127.0.0.1:8080/authorized")
         .scope(OidcScopes.OPENID)
         .scope(OidcScopes.PROFILE)
+        .scope("message.read")
+        .scope("message.write")
         .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
         .build();
 
-    return new InMemoryRegisteredClientRepository(oidcClient);
+    return new InMemoryRegisteredClientRepository(registeredClient);
   }
 
   @Bean
